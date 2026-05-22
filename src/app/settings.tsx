@@ -1,8 +1,9 @@
 import { View, Text, Switch, TextInput, StyleSheet, ScrollView } from 'react-native';
 import { useState } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function SettingsScreen() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');

@@ -1,181 +1,218 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import React from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Dimensions,
+} from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.6;
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
-  };
-  const theme = useTheme();
+const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+const SECTIONS = [
+  { title: 'Start Here', data: ['Intro to Training', 'How to Use the App', 'Set Your Goals'] },
+  { title: 'Build Strength', data: ['Beginner 0 Pull Ups', 'Intermediate 5 Pull Ups', 'Advanced'] },
+  { title: 'Muscle Up', data: ['Muscle Up Basics', 'False Grip', 'Full Muscle Up'] },
+  { title: 'Handstand', data: ['Wall Handstand', 'Freestanding HS', 'HS Push Up'] },
+  { title: 'Front Lever', data: ['Tuck Front Lever', 'Advanced Tuck', 'Full Front Lever'] },
+  { title: 'Mobility', data: ['Hip Mobility', 'Shoulder Mobility', 'Full Body Flow'] },
+];
+
+function WorkoutCard({ title, dark }: { title: string; dark: boolean }) {
+  return (
+    <View style={[styles.card, dark && styles.darkCard]}>
+      <View style={[styles.cardImagePlaceholder, dark && styles.darkCardImagePlaceholder]} />
+      <Text style={[styles.cardTitle, dark && styles.darkText]}>{title}</Text>
+    </View>
+  );
+}
+
+function Section({ title, data, dark }: { title: string; data: string[]; dark: boolean }) {
+  return (
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, dark && styles.darkText]}>{title}</Text>
+        <TouchableOpacity>
+          <Text style={styles.viewAll}>View All</Text>
+        </TouchableOpacity>
+      </View>
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={data}
+        keyExtractor={(item) => item}
+        contentContainerStyle={styles.cardList}
+        renderItem={({ item }) => <WorkoutCard title={item} dark={dark} />}
+      />
+    </View>
+  );
+}
+
+export default function ExploreScreen() {
+  const [activeFilter, setActiveFilter] = useState('Skills');
+const { darkMode: dark } = useTheme();
 
   return (
     <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+      style={[styles.container, dark && styles.darkContainer]}
+      showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={[styles.heading, dark && styles.darkText]}>EXPLORE</Text>
+        <TouchableOpacity>
+          <Text style={styles.searchIcon}>🔍</Text>
+        </TouchableOpacity>
+      </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+      {/* Filter Bar */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filterBar}>
+        {FILTERS.map((filter) => (
+          <TouchableOpacity
+            key={filter}
+            style={[
+              styles.filterChip,
+              dark && styles.darkFilterChip,
+              activeFilter === filter && styles.activeChip,
+            ]}
+            onPress={() => setActiveFilter(filter)}>
+            <Text
+              style={[
+                styles.filterText,
+                dark && styles.darkFilterText,
+                activeFilter === filter && styles.activeFilterText,
+              ]}>
+              {filter}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
-
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
-
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
+      {/* Sections */}
+      {SECTIONS.map((section) => (
+        <Section key={section.title} title={section.title} data={section.data} dark={dark} />
+      ))}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
   container: {
-    maxWidth: MaxContentWidth,
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: '#f9f9f9',
   },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+  darkContainer: {
+    backgroundColor: '#121212',
   },
-  centerText: {
-    textAlign: 'center',
-  },
-  pressed: {
-    opacity: 0.7,
-  },
-  linkButton: {
+  header: {
     flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 10,
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+  heading: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    color: '#111',
   },
-  collapsibleContent: {
+  darkText: {
+    color: '#fff',
+  },
+  searchIcon: {
+    fontSize: 22,
+  },
+  filterBar: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    gap: 8,
+    flexDirection: 'row',
+  },
+  filterChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#fff',
+  },
+  darkFilterChip: {
+    backgroundColor: '#1e1e1e',
+    borderColor: '#444',
+  },
+  activeChip: {
+    backgroundColor: '#222',
+    borderColor: '#222',
+  },
+  filterText: {
+    fontSize: 14,
+    color: '#555',
+  },
+  darkFilterText: {
+    color: '#aaa',
+  },
+  activeFilterText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  section: {
+    marginTop: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 12,
   },
-  imageTutorial: {
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111',
+  },
+  viewAll: {
+    fontSize: 14,
+    color: '#888',
+  },
+  cardList: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  card: {
+    width: CARD_WIDTH,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  darkCard: {
+    backgroundColor: '#1e1e1e',
+  },
+  cardImagePlaceholder: {
     width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+    height: 150,
+    backgroundColor: '#d0d0d0',
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  darkCardImagePlaceholder: {
+    backgroundColor: '#333',
+  },
+  cardTitle: {
+    padding: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111',
   },
 });
