@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   View,
   Text,
@@ -16,20 +17,24 @@ const CARD_WIDTH = width * 0.6;
 const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
 const SECTIONS = [
-  { title: 'Start Here', data: ['Intro to Training', 'How to Use the App', 'Set Your Goals'] },
-  { title: 'Build Strength', data: ['Beginner 0 Pull Ups', 'Intermediate 5 Pull Ups', 'Advanced'] },
-  { title: 'Muscle Up', data: ['Muscle Up Basics', 'False Grip', 'Full Muscle Up'] },
-  { title: 'Handstand', data: ['Wall Handstand', 'Freestanding HS', 'HS Push Up'] },
-  { title: 'Front Lever', data: ['Tuck Front Lever', 'Advanced Tuck', 'Full Front Lever'] },
-  { title: 'Mobility', data: ['Hip Mobility', 'Shoulder Mobility', 'Full Body Flow'] },
+  { title: 'Start Here', category: 'Skills', data: ['Intro to Training', 'How to Use the App', 'Set Your Goals'] },
+  { title: 'Build Strength', category: 'Strength', data: ['Beginner', 'Intermediate', 'Advanced'] },
+  { title: 'Muscle Up', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
+  { title: 'Handstand', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
+  { title: 'Front Lever', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
+  { title: 'Mobility', category: 'Mobility', data: ['Hip Mobility', 'Shoulder Mobility', 'Full Body Flow'] },
 ];
 
 function WorkoutCard({ title, dark }: { title: string; dark: boolean }) {
+  const router = useRouter();
+
   return (
-    <View style={[styles.card, dark && styles.darkCard]}>
+    <TouchableOpacity
+      style={[styles.card, dark && styles.darkCard]}
+      onPress={() => router.push(`/program/${encodeURIComponent(title)}` as any)}>
       <View style={[styles.cardImagePlaceholder, dark && styles.darkCardImagePlaceholder]} />
       <Text style={[styles.cardTitle, dark && styles.darkText]}>{title}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -56,7 +61,11 @@ function Section({ title, data, dark }: { title: string; data: string[]; dark: b
 
 export default function ExploreScreen() {
   const [activeFilter, setActiveFilter] = useState('Skills');
-const { darkMode: dark } = useTheme();
+  const { darkMode: dark } = useTheme();
+
+  const filteredSections = SECTIONS.filter(
+    (section) => section.category === activeFilter
+  );
 
   return (
     <ScrollView
@@ -97,7 +106,7 @@ const { darkMode: dark } = useTheme();
       </ScrollView>
 
       {/* Sections */}
-      {SECTIONS.map((section) => (
+      {filteredSections.map((section) => (
         <Section key={section.title} title={section.title} data={section.data} dark={dark} />
       ))}
     </ScrollView>

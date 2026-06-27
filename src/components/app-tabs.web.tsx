@@ -28,10 +28,12 @@ export default function AppTabs() {
           <TabTrigger name="explore" href="/explore" asChild>
             <TabButton>Explore</TabButton>
           </TabTrigger>
-          {/* added settings tab trigger */}
           <TabTrigger name="settings" href="/settings" asChild>
-          <TabButton>Settings</TabButton>
+            <TabButton>Settings</TabButton>
           </TabTrigger>
+          {/* Hidden triggers for dynamic routes */}
+          <TabTrigger name="program" href="/program/Beginner" style={{ display: 'none' }} />
+          <TabTrigger name="workout" href="/workout/Workout 1" style={{ display: 'none' }} />
         </CustomTabList>
       </TabList>
     </Tabs>
@@ -64,17 +66,6 @@ export function CustomTabList(props: TabListProps) {
         </ThemedText>
 
         {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
       </ThemedView>
     </View>
   );
