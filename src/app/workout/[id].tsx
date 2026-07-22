@@ -4,9 +4,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
+import { useState } from 'react';
+import { WebView } from 'react-native-webview';
 
 const WORKOUTS: Record<string, any> = {
   'Workout 1': {
@@ -17,20 +20,20 @@ const WORKOUTS: Record<string, any> = {
         title: 'WARM UP',
         sets: '1 set',
         exercises: [
-          { name: 'Arm Circles - Forward', reps: '8 reps' },
-          { name: 'Arm Circles - Backwards', reps: '8 reps' },
-          { name: 'Standing Alternating Over-Under', reps: '8 reps' },
-          { name: 'External - Internal Rotation', reps: '8 reps' },
+          { name: 'Arm Circles - Forward', reps: '8 reps', videoUrl: 'https://youtu.be/iDL5-tQyFQQ' },
+          { name: 'Arm Circles - Backwards', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Standing Alternating Over-Under', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'External - Internal Rotation', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
         ],
       },
       {
         title: 'MAIN WORK',
         sets: '3 sets',
         exercises: [
-          { name: 'Push Ups', reps: '10 reps' },
-          { name: 'Pull Ups', reps: '5 reps' },
-          { name: 'Plank Hold', reps: '30 seconds' },
-          { name: 'Hollow Body Hold', reps: '20 seconds' },
+          { name: 'Push Ups', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=IODxDxX7oi4' },
+          { name: 'Pull Ups', reps: '5 reps', videoUrl: 'https://www.youtube.com/watch?v=eGo4IYlbE5g' },
+          { name: 'Plank Hold', reps: '30 seconds', videoUrl: 'https://www.youtube.com/watch?v=pSHjTRCQxIw' },
+          { name: 'Hollow Body Hold', reps: '20 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
         ],
       },
     ],
@@ -43,19 +46,19 @@ const WORKOUTS: Record<string, any> = {
         title: 'WARM UP',
         sets: '1 set',
         exercises: [
-          { name: 'Jumping Jacks', reps: '20 reps' },
-          { name: 'Hip Circles', reps: '10 reps each side' },
-          { name: 'Leg Swings', reps: '10 reps each side' },
+          { name: 'Jumping Jacks', reps: '20 reps', videoUrl: 'https://www.youtube.com/watch?v=c4DAnQ6DtF8' },
+          { name: 'Hip Circles', reps: '10 reps each side', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Leg Swings', reps: '10 reps each side', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
         ],
       },
       {
         title: 'MAIN WORK',
         sets: '3 sets',
         exercises: [
-          { name: 'Dips', reps: '8 reps' },
-          { name: 'Australian Pull Ups', reps: '10 reps' },
-          { name: 'L-Sit Hold', reps: '15 seconds' },
-          { name: 'Arch Body Hold', reps: '20 seconds' },
+          { name: 'Dips', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=2z8JmcrW-As' },
+          { name: 'Australian Pull Ups', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=PGcTxvw6iAQ' },
+          { name: 'L-Sit Hold', reps: '15 seconds', videoUrl: 'https://www.youtube.com/watch?v=IUZJoSP66HI' },
+          { name: 'Arch Body Hold', reps: '20 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
         ],
       },
     ],
@@ -68,29 +71,76 @@ const WORKOUTS: Record<string, any> = {
         title: 'WARM UP',
         sets: '1 set',
         exercises: [
-          { name: 'Shoulder Rolls', reps: '10 reps' },
-          { name: 'Wrist Circles', reps: '10 reps' },
-          { name: 'Cat-Cow Stretch', reps: '8 reps' },
+          { name: 'Shoulder Rolls', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Wrist Circles', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Cat-Cow Stretch', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=kqnua4rHVVA' },
         ],
       },
       {
         title: 'MAIN WORK',
         sets: '3 sets',
         exercises: [
-          { name: 'Pike Push Ups', reps: '8 reps' },
-          { name: 'Chin Ups', reps: '5 reps' },
-          { name: 'Side Plank', reps: '20 seconds each side' },
-          { name: 'Tuck Hold', reps: '15 seconds' },
+          { name: 'Pike Push Ups', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=sposDXWEB0A' },
+          { name: 'Chin Ups', reps: '5 reps', videoUrl: 'https://www.youtube.com/watch?v=eGo4IYlbE5g' },
+          { name: 'Side Plank', reps: '20 seconds each side', videoUrl: 'https://www.youtube.com/watch?v=K2EUqoMjmYg' },
+          { name: 'Tuck Hold', reps: '15 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
         ],
       },
     ],
   },
 };
 
+function ExerciseCard({ exercise, dark }: { exercise: any; dark: boolean }) {
+  const [expanded, setExpanded] = useState(false);
+  const videoId = exercise.videoUrl?.split('v=')[1];
+
+  return (
+    <TouchableOpacity
+      style={[styles.exerciseCard, dark && styles.darkCard]}
+      onPress={() => setExpanded(!expanded)}
+      activeOpacity={0.8}>
+      <View style={styles.exerciseRow}>
+        <View style={styles.exerciseImage}>
+          <Text style={styles.playIcon}>▶</Text>
+        </View>
+        <View style={styles.exerciseInfo}>
+          <Text style={[styles.exerciseName, dark && styles.darkText]}>
+            {exercise.name}
+          </Text>
+          <Text style={[styles.exerciseReps, dark && styles.darkSubText]}>
+            {exercise.reps}
+          </Text>
+        </View>
+        <Text style={[styles.expandIcon, dark && styles.darkSubText]}>
+          {expanded ? '▲' : '▼'}
+        </Text>
+      </View>
+      {expanded && videoId && (
+        Platform.OS === 'web' ? (
+          <iframe
+            width="100%"
+            height="200"
+            src={`https://www.youtube.com/embed/${videoId}`}
+            allowFullScreen
+            style={{ borderRadius: 8, marginTop: 12, border: 'none' }}
+          />
+        ) : (
+          <WebView
+            style={styles.video}
+            source={{ uri: `https://www.youtube.com/embed/${videoId}` }}
+            allowsFullscreenVideo
+            javaScriptEnabled
+          />
+        )
+      )}
+    </TouchableOpacity>
+  );
+}
+
 export default function WorkoutDetailScreen() {
-  const { id } = useLocalSearchParams();
   const { darkMode: dark } = useTheme();
   const router = useRouter();
+  const { id, programId } = useLocalSearchParams();
 
   const workout = WORKOUTS[id as string] ?? WORKOUTS['Workout 1'];
 
@@ -98,40 +148,31 @@ export default function WorkoutDetailScreen() {
     <View style={[styles.container, dark && styles.darkContainer]}>
       {/* Hero */}
       <View style={styles.hero}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
         <View style={styles.heroOverlay}>
           <Text style={styles.heroTitle}>{workout.title.toUpperCase()}</Text>
           <Text style={styles.heroSubtitle}>{workout.subtitle}</Text>
         </View>
       </View>
 
+      {/* Back Button */}
+<Link href={`/program/${programId ?? 'Beginner'}`} asChild>
+  <TouchableOpacity style={styles.closeButton}>
+    <Text style={styles.closeText}>←</Text>
+  </TouchableOpacity>
+</Link>
+
       {/* Exercise List */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+<ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {workout.sections.map((section: any) => (
           <View key={section.title} style={styles.section}>
-            {/* Section Header */}
             <Text style={[styles.sectionTitle, dark && styles.darkText]}>
               {section.title}
             </Text>
             <Text style={[styles.sectionSets, dark && styles.darkSubText]}>
               {section.sets}
             </Text>
-
-            {/* Exercise Cards */}
             {section.exercises.map((exercise: any, index: number) => (
-              <View key={index} style={[styles.exerciseCard, dark && styles.darkCard]}>
-                <View style={styles.exerciseImage} />
-                <View style={styles.exerciseInfo}>
-                  <Text style={[styles.exerciseName, dark && styles.darkText]}>
-                    {exercise.name}
-                  </Text>
-                  <Text style={[styles.exerciseReps, dark && styles.darkSubText]}>
-                    {exercise.reps}
-                  </Text>
-                </View>
-              </View>
+              <ExerciseCard key={index} exercise={exercise} dark={dark} />
             ))}
           </View>
         ))}
@@ -162,12 +203,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     justifyContent: 'flex-end',
   },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    left: 16,
-    zIndex: 10,
-  },
+closeButton: {
+  position: 'absolute',
+  top: 50,
+  left: 16,
+  zIndex: 100,
+  width: 44,
+  height: 44,
+  borderRadius: 22,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+  closeCircle: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: 'rgba(0,0,0,0.4)',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
   closeText: {
     fontSize: 20,
     color: '#fff',
@@ -209,23 +265,15 @@ const styles = StyleSheet.create({
   darkSubText: {
     color: '#aaa',
   },
-  exerciseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    gap: 12,
-  },
+exerciseCard: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  padding: 12,
+  marginBottom: 10,
+  flexDirection: 'column',
+},
   darkCard: {
     backgroundColor: '#1e1e1e',
-  },
-  exerciseImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#ddd',
   },
   exerciseInfo: {
     flex: 1,
@@ -255,4 +303,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  exerciseRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 12,
+},
+playIcon: {
+  color: '#fff',
+  fontSize: 16,
+},
+expandIcon: {
+  fontSize: 12,
+  color: '#888',
+},
+video: {
+  width: '100%',
+  height: 200,
+  marginTop: 12,
+  borderRadius: 8,
+},
+
+exerciseImage: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: '#555',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
 });

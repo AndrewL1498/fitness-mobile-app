@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
@@ -102,9 +102,11 @@ export default function ProgramScreen() {
     <View style={[styles.container, dark && styles.darkContainer]}>
       {/* Header */}
       <View style={[styles.header, dark && styles.darkHeader]}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={[styles.backArrow, dark && styles.darkText]}>←</Text>
-        </TouchableOpacity>
+<Link href="/explore" asChild>
+  <TouchableOpacity>
+    <Text style={[styles.backArrow, dark && styles.darkText]}>←</Text>
+  </TouchableOpacity>
+</Link>
         <Text style={[styles.headerTitle, dark && styles.darkText]}>
           {program.title.toUpperCase()}
         </Text>
@@ -165,7 +167,7 @@ export default function ProgramScreen() {
                     style={[styles.dayCard, dark && styles.darkCard]}
                     onPress={() =>
                       !day.isRest &&
-                      router.push(`/workout/${encodeURIComponent(day.title)}` as any)
+                      router.push(`/workout/${encodeURIComponent(day.title)}?programId=${encodeURIComponent(id as string)}` as any)
                     }>
                     <View>
                       <Text style={[styles.dayLabel, dark && styles.darkSubText]}>
@@ -219,11 +221,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     backgroundColor: '#f2f2f2',
   },
-  darkTabBar: { backgroundColor: '#121212', borderBottomColor: '#333' },
+darkTabBar: { backgroundColor: '#121212', borderBottomColor: '#444' },
   tab: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 2, borderBottomColor: '#111' },
-  tabText: { fontSize: 15, color: '#888' },
-  activeTabText: { color: '#111', fontWeight: '600' },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: '#007AFF' },
+  tabText: { fontSize: 15, color: '#999' },
+  activeTabText: { color: '#007AFF', fontWeight: '700' },
   content: { flex: 1 },
   overviewContent: { padding: 16, gap: 12 },
   heroImage: {
