@@ -12,7 +12,7 @@ import {
 import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.6;
+const CARD_WIDTH = Math.min(width * 0.6, 300);
 
 const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
@@ -114,10 +114,13 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
+container: {
+  flex: 1,
+  backgroundColor: '#f9f9f9',
+  maxWidth: 600,
+  alignSelf: 'center',
+  width: '100%',
+},
   darkContainer: {
     backgroundColor: '#121212',
   },
@@ -208,7 +211,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   darkCard: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: '#2a2a2a',
   },
   cardImagePlaceholder: {
     width: '100%',

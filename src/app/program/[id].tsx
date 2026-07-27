@@ -199,7 +199,13 @@ export default function ProgramScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f2f2f2' },
+  container: { 
+  flex: 1, 
+  backgroundColor: '#f2f2f2',
+  maxWidth: 600,
+  alignSelf: 'center',
+  width: '100%',
+},
   darkContainer: { backgroundColor: '#121212' },
   header: {
     flexDirection: 'row',

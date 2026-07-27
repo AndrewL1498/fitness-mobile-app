@@ -92,7 +92,20 @@ const WORKOUTS: Record<string, any> = {
 
 function ExerciseCard({ exercise, dark }: { exercise: any; dark: boolean }) {
   const [expanded, setExpanded] = useState(false);
-  const videoId = exercise.videoUrl?.split('v=')[1];
+  
+  // Handle both youtube.com/watch?v= and youtu.be/ formats
+  const getVideoId = (url: string) => {
+    if (!url) return null;
+    if (url.includes('youtu.be/')) {
+      return url.split('youtu.be/')[1].split('?')[0];
+    }
+    if (url.includes('v=')) {
+      return url.split('v=')[1].split('&')[0];
+    }
+    return null;
+  };
+
+  const videoId = getVideoId(exercise.videoUrl);
 
   return (
     <TouchableOpacity
@@ -115,23 +128,25 @@ function ExerciseCard({ exercise, dark }: { exercise: any; dark: boolean }) {
           {expanded ? '▲' : '▼'}
         </Text>
       </View>
-      {expanded && videoId && (
-        Platform.OS === 'web' ? (
+      {expanded && videoId && Platform.OS === 'web' && (
+        <View style={{ width: '100%', height: 200, marginTop: 12 }}>
           <iframe
             width="100%"
             height="200"
             src={`https://www.youtube.com/embed/${videoId}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            style={{ borderRadius: 8, marginTop: 12, border: 'none' }}
+            style={{ border: 'none', borderRadius: 8 }}
           />
-        ) : (
-          <WebView
-            style={styles.video}
-            source={{ uri: `https://www.youtube.com/embed/${videoId}` }}
-            allowsFullscreenVideo
-            javaScriptEnabled
-          />
-        )
+        </View>
+      )}
+      {expanded && videoId && Platform.OS !== 'web' && (
+        <WebView
+          style={styles.video}
+          source={{ uri: `https://www.youtube.com/embed/${videoId}` }}
+          allowsFullscreenVideo
+          javaScriptEnabled
+        />
       )}
     </TouchableOpacity>
   );
@@ -190,10 +205,13 @@ export default function WorkoutDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f2f2f2',
-  },
+container: {
+  flex: 1,
+  backgroundColor: '#f9f9f9',
+  maxWidth: 600,
+  alignSelf: 'center',
+  width: '100%',
+},
   darkContainer: {
     backgroundColor: '#121212',
   },
