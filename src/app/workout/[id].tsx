@@ -159,9 +159,9 @@ export default function WorkoutDetailScreen() {
 
   const workout = WORKOUTS[id as string] ?? WORKOUTS['Workout 1'];
 
-  return (
+return (
     <View style={[styles.container, dark && styles.darkContainer]}>
-      {/* Hero */}
+      {/* Sticky Hero */}
       <View style={styles.hero}>
         <View style={styles.heroOverlay}>
           <Text style={styles.heroTitle}>{workout.title.toUpperCase()}</Text>
@@ -169,15 +169,15 @@ export default function WorkoutDetailScreen() {
         </View>
       </View>
 
-      {/* Back Button */}
-<Link href={`/program/${programId ?? 'Beginner'}`} asChild>
-  <TouchableOpacity style={styles.closeButton}>
-    <Text style={styles.closeText}>←</Text>
-  </TouchableOpacity>
-</Link>
+      {/* Back Button - floats over hero */}
+      <Link href={`/program/${programId ?? 'Beginner'}`} asChild>
+        <TouchableOpacity style={styles.closeButton}>
+          <Text style={styles.closeText}>←</Text>
+        </TouchableOpacity>
+      </Link>
 
-      {/* Exercise List */}
-<ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Scrollable Exercise List */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {workout.sections.map((section: any) => (
           <View key={section.title} style={styles.section}>
             <Text style={[styles.sectionTitle, dark && styles.darkText]}>
@@ -215,12 +215,13 @@ container: {
   darkContainer: {
     backgroundColor: '#121212',
   },
-  hero: {
-    width: '100%',
-    height: 280,
-    backgroundColor: '#333',
-    justifyContent: 'flex-end',
-  },
+hero: {
+  width: '100%',
+  height: 160,
+  backgroundColor: '#333',
+  justifyContent: 'flex-end',
+  position: 'relative',
+},
 closeButton: {
   position: 'absolute',
   top: 50,
@@ -246,9 +247,10 @@ closeButton: {
     fontSize: 20,
     color: '#fff',
   },
-  heroOverlay: {
-    padding: 20,
-  },
+heroOverlay: {
+  padding: 20,
+  paddingLeft: 70,
+},
   heroTitle: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -311,7 +313,7 @@ exerciseCard: {
     paddingBottom: 32,
   },
   startButton: {
-    backgroundColor: '#111',
+    backgroundColor: '#ff0000',
     borderRadius: 30,
     padding: 18,
     alignItems: 'center',

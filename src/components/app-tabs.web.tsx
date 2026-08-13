@@ -6,22 +6,24 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
+import { usePathname } from 'expo-router';
 import React from 'react';
 import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
 
-import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 
 export default function AppTabs() {
+  const pathname = usePathname();
+  const isWorkoutScreen = pathname.startsWith('/workout/');
+
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
-        <CustomTabList>
+        <CustomTabList hidden={isWorkoutScreen}>
           <TabTrigger name="home" href="/" asChild>
             <TabButton>Home</TabButton>
           </TabTrigger>
@@ -31,7 +33,6 @@ export default function AppTabs() {
           <TabTrigger name="settings" href="/settings" asChild>
             <TabButton>Settings</TabButton>
           </TabTrigger>
-          {/* Hidden triggers for dynamic routes */}
           <TabTrigger name="program" href="/program/Beginner" style={{ display: 'none' }} />
           <TabTrigger name="workout" href="/workout/Workout 1" style={{ display: 'none' }} />
         </CustomTabList>
@@ -54,17 +55,18 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
   );
 }
 
-export function CustomTabList(props: TabListProps) {
+export function CustomTabList(props: TabListProps & { hidden?: boolean }) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+
+  if (props.hidden) return <View style={{ display: 'none' }}>{props.children}</View>;
 
   return (
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
+          Andrew Aurora Athletics
         </ThemedText>
-
         {props.children}
       </ThemedView>
     </View>
@@ -72,24 +74,25 @@ export function CustomTabList(props: TabListProps) {
 }
 
 const styles = StyleSheet.create({
-  tabListContainer: {
-    position: 'absolute',
-    width: '100%',
-    padding: Spacing.three,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-innerContainer: {
-  paddingVertical: Spacing.two,
-  paddingHorizontal: Spacing.five,
-  borderRadius: Spacing.five,
-  flexDirection: 'row',
+tabListContainer: {
+  position: 'absolute',
+  bottom: 0,
+  width: '100%',
+  padding: Spacing.three,
+  justifyContent: 'center',
   alignItems: 'center',
-  flexGrow: 1,
-  gap: Spacing.two,
-  maxWidth: 600,
+  flexDirection: 'row',
 },
+  innerContainer: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.five,
+    borderRadius: Spacing.five,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexGrow: 1,
+    gap: Spacing.two,
+    maxWidth: 600,
+  },
   brandText: {
     marginRight: 'auto',
   },

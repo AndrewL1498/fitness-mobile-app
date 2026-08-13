@@ -8,11 +8,12 @@ import {
   StyleSheet,
   FlatList,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = Math.min(width * 0.6, 300);
+const CARD_WIDTH = Math.min(width * 0.6, 280);
 
 const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
@@ -59,68 +60,138 @@ function Section({ title, data, dark }: { title: string; data: string[]; dark: b
   );
 }
 
+function SearchResultCard({ title, sectionTitle, dark }: { title: string; sectionTitle: string; dark: boolean }) {
+  const router = useRouter();
+
+  return (
+    <TouchableOpacity
+      style={[styles.searchResultCard, dark && styles.darkCard]}
+      onPress={() => router.push(`/program/${encodeURIComponent(title)}` as any)}>
+      <View style={[styles.searchResultImage, dark && styles.darkCardImagePlaceholder]} />
+      <View style={styles.searchResultInfo}>
+        <Text style={[styles.searchResultTitle, dark && styles.darkText]}>{title}</Text>
+        <Text style={[styles.searchResultSubtitle, dark && styles.darkSubText]}>{sectionTitle}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
 export default function ExploreScreen() {
   const [activeFilter, setActiveFilter] = useState('Skills');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const { darkMode: dark } = useTheme();
 
   const filteredSections = SECTIONS.filter(
     (section) => section.category === activeFilter
   );
 
+  // Build search results
+  const searchResults = SECTIONS.flatMap((section) =>
+    section.data
+      .filter(
+        (item) =>
+          item.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          section.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .map((item) => ({ title: item, sectionTitle: section.title, category: section.category }))
+  );
+
+  const isSearching = searchOpen && searchQuery.length > 0;
+
   return (
     <ScrollView
       style={[styles.container, dark && styles.darkContainer]}
       showsVerticalScrollIndicator={false}>
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={[styles.heading, dark && styles.darkText]}>EXPLORE</Text>
-        <TouchableOpacity>
-          <Text style={styles.searchIcon}>🔍</Text>
+        <TouchableOpacity onPress={() => {
+          setSearchOpen(!searchOpen);
+          setSearchQuery('');
+        }}>
+          <Text style={styles.searchIcon}>{searchOpen ? '✕' : '🔍'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Filter Bar */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterBar}>
-        {FILTERS.map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            style={[
-              styles.filterChip,
-              dark && styles.darkFilterChip,
-              activeFilter === filter && styles.activeChip,
-            ]}
-            onPress={() => setActiveFilter(filter)}>
-            <Text
-              style={[
-                styles.filterText,
-                dark && styles.darkFilterText,
-                activeFilter === filter && styles.activeFilterText,
-              ]}>
-              {filter}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Search Bar */}
+      {searchOpen && (
+        <View style={[styles.searchBar, dark && styles.darkSearchBar]}>
+          <TextInput
+            style={[styles.searchInput, dark && styles.darkSearchInput]}
+            placeholder="Search workouts, categories..."
+            placeholderTextColor={dark ? '#888' : '#aaa'}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        </View>
+      )}
 
-      {/* Sections */}
-      {filteredSections.map((section) => (
-        <Section key={section.title} title={section.title} data={section.data} dark={dark} />
-      ))}
+      {/* Search Results */}
+      {isSearching ? (
+        <View style={styles.searchResults}>
+          {searchResults.length === 0 ? (
+            <Text style={[styles.noResults, dark && styles.darkText]}>No results found</Text>
+          ) : (
+            searchResults.map((result, index) => (
+              <SearchResultCard
+                key={index}
+                title={result.title}
+                sectionTitle={result.sectionTitle}
+                dark={dark}
+              />
+            ))
+          )}
+        </View>
+      ) : (
+        <>
+          {/* Filter Bar */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterBar}>
+            {FILTERS.map((filter) => (
+              <TouchableOpacity
+                key={filter}
+                style={[
+                  styles.filterChip,
+                  dark && styles.darkFilterChip,
+                  activeFilter === filter && styles.activeChip,
+                ]}
+                onPress={() => setActiveFilter(filter)}>
+                <Text
+                  style={[
+                    styles.filterText,
+                    dark && styles.darkFilterText,
+                    activeFilter === filter && styles.activeFilterText,
+                  ]}>
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Sections */}
+          {filteredSections.map((section) => (
+            <Section key={section.title} title={section.title} data={section.data} dark={dark} />
+          ))}
+        </>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1,
-  backgroundColor: '#f9f9f9',
-  maxWidth: 600,
-  alignSelf: 'center',
-  width: '100%',
-},
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
   darkContainer: {
     backgroundColor: '#121212',
   },
@@ -129,20 +200,84 @@ container: {
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 80,
     paddingBottom: 10,
   },
-  heading: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    color: '#111',
-  },
+heading: {
+  fontSize: 28,
+  fontWeight: 'bold',
+  letterSpacing: 2,
+  color: '#111',
+  flex: 1,
+  textAlign: 'center',
+},
   darkText: {
     color: '#fff',
   },
+  darkSubText: {
+    color: '#aaa',
+  },
   searchIcon: {
     fontSize: 22,
+  },
+  searchBar: {
+    marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  darkSearchBar: {
+    backgroundColor: '#1e1e1e',
+    borderColor: '#444',
+  },
+  searchInput: {
+    fontSize: 16,
+    color: '#111',
+  },
+  darkSearchInput: {
+    color: '#fff',
+  },
+  searchResults: {
+    padding: 20,
+    gap: 12,
+  },
+  noResults: {
+    textAlign: 'center',
+    color: '#888',
+    fontSize: 16,
+    marginTop: 40,
+  },
+  searchResultCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    gap: 12,
+    marginBottom: 10,
+  },
+  searchResultImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    backgroundColor: '#d0d0d0',
+  },
+  searchResultInfo: {
+    flex: 1,
+  },
+  searchResultTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111',
+  },
+  searchResultSubtitle: {
+    fontSize: 13,
+    color: '#888',
+    marginTop: 2,
   },
   filterBar: {
     paddingHorizontal: 20,
