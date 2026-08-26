@@ -18,28 +18,52 @@ const CARD_WIDTH = Math.min(width * 0.6, 280);
 const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
 const SECTIONS = [
-  { title: 'Start Here', category: 'Skills', data: ['Intro to Training', 'How to Use the App', 'Set Your Goals'] },
-  { title: 'Build Strength', category: 'Strength', data: ['Beginner', 'Intermediate', 'Advanced'] },
-  { title: 'Muscle Up', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
-  { title: 'Handstand', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
-  { title: 'Front Lever', category: 'Skills', data: ['Beginner', 'Intermediate', 'Advanced'] },
-  { title: 'Mobility', category: 'Mobility', data: ['Hip Mobility', 'Shoulder Mobility', 'Full Body Flow'] },
+  { title: 'Start Here', category: 'Skills', data: [
+    { label: 'Intro to Training', id: 'start-here-intro' },
+    { label: 'How to Use the App', id: 'start-here-how-to' },
+    { label: 'Set Your Goals', id: 'start-here-goals' },
+  ]},
+  { title: 'Build Strength', category: 'Strength', data: [
+    { label: 'Beginner', id: 'build-strength-beginner' },
+    { label: 'Intermediate', id: 'build-strength-intermediate' },
+    { label: 'Advanced', id: 'build-strength-advanced' },
+  ]},
+  { title: 'Muscle Up', category: 'Skills', data: [
+    { label: 'Beginner', id: 'muscle-up-beginner' },
+    { label: 'Intermediate', id: 'muscle-up-intermediate' },
+    { label: 'Advanced', id: 'muscle-up-advanced' },
+  ]},
+  { title: 'Handstand', category: 'Skills', data: [
+    { label: 'Beginner', id: 'handstand-beginner' },
+    { label: 'Intermediate', id: 'handstand-intermediate' },
+    { label: 'Advanced', id: 'handstand-advanced' },
+  ]},
+  { title: 'Front Lever', category: 'Skills', data: [
+    { label: 'Beginner', id: 'front-lever-beginner' },
+    { label: 'Intermediate', id: 'front-lever-intermediate' },
+    { label: 'Advanced', id: 'front-lever-advanced' },
+  ]},
+  { title: 'Mobility', category: 'Mobility', data: [
+    { label: 'Hip Mobility', id: 'mobility-hip' },
+    { label: 'Shoulder Mobility', id: 'mobility-shoulder' },
+    { label: 'Full Body Flow', id: 'mobility-full-body' },
+  ]},
 ];
 
-function WorkoutCard({ title, dark }: { title: string; dark: boolean }) {
+function WorkoutCard({ label, id, dark }: { label: string; id: string; dark: boolean }) {
   const router = useRouter();
 
   return (
     <TouchableOpacity
       style={[styles.card, dark && styles.darkCard]}
-      onPress={() => router.push(`/program/${encodeURIComponent(title)}` as any)}>
+      onPress={() => router.push(`/program/${encodeURIComponent(id)}` as any)}>
       <View style={[styles.cardImagePlaceholder, dark && styles.darkCardImagePlaceholder]} />
-      <Text style={[styles.cardTitle, dark && styles.darkText]}>{title}</Text>
+      <Text style={[styles.cardTitle, dark && styles.darkText]}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-function Section({ title, data, dark }: { title: string; data: string[]; dark: boolean }) {
+function Section({ title, data, dark }: { title: string; data: { label: string; id: string }[]; dark: boolean }) {
   return (
     <View style={styles.section}>
       <View style={styles.sectionHeader}>
@@ -52,24 +76,24 @@ function Section({ title, data, dark }: { title: string; data: string[]; dark: b
         horizontal
         showsHorizontalScrollIndicator={false}
         data={data}
-        keyExtractor={(item) => item}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.cardList}
-        renderItem={({ item }) => <WorkoutCard title={item} dark={dark} />}
+renderItem={({ item }) => <WorkoutCard label={item.label} id={item.id} dark={dark} />}
       />
     </View>
   );
 }
 
-function SearchResultCard({ title, sectionTitle, dark }: { title: string; sectionTitle: string; dark: boolean }) {
+function SearchResultCard({ label, id, sectionTitle, dark }: { label: string; id: string; sectionTitle: string; dark: boolean }) {
   const router = useRouter();
 
   return (
     <TouchableOpacity
       style={[styles.searchResultCard, dark && styles.darkCard]}
-      onPress={() => router.push(`/program/${encodeURIComponent(title)}` as any)}>
+      onPress={() => router.push(`/program/${encodeURIComponent(id)}` as any)}>
       <View style={[styles.searchResultImage, dark && styles.darkCardImagePlaceholder]} />
       <View style={styles.searchResultInfo}>
-        <Text style={[styles.searchResultTitle, dark && styles.darkText]}>{title}</Text>
+        <Text style={[styles.searchResultTitle, dark && styles.darkText]}>{label}</Text>
         <Text style={[styles.searchResultSubtitle, dark && styles.darkSubText]}>{sectionTitle}</Text>
       </View>
     </TouchableOpacity>
@@ -86,16 +110,15 @@ export default function ExploreScreen() {
     (section) => section.category === activeFilter
   );
 
-  // Build search results
   const searchResults = SECTIONS.flatMap((section) =>
     section.data
       .filter(
         (item) =>
-          item.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           section.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
-      .map((item) => ({ title: item, sectionTitle: section.title, category: section.category }))
+.map((item) => ({ label: item.label, id: item.id, sectionTitle: section.title }))
   );
 
   const isSearching = searchOpen && searchQuery.length > 0;
@@ -107,28 +130,33 @@ export default function ExploreScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.heading, dark && styles.darkText]}>EXPLORE</Text>
-        <TouchableOpacity onPress={() => {
-          setSearchOpen(!searchOpen);
-          setSearchQuery('');
-        }}>
-          <Text style={styles.searchIcon}>{searchOpen ? '✕' : '🔍'}</Text>
-        </TouchableOpacity>
+        {searchOpen ? (
+          <>
+            <TextInput
+              style={[styles.searchInput, dark && styles.darkSearchInput]}
+              placeholder="Search workouts, categories..."
+              placeholderTextColor={dark ? '#888' : '#aaa'}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoFocus
+            />
+            <TouchableOpacity onPress={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
+            }}>
+              <Text style={[styles.searchIcon, dark && styles.darkText]}>✕</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <View style={{ width: 30 }} />
+            <Text style={[styles.heading, dark && styles.darkText]}>EXPLORE</Text>
+            <TouchableOpacity onPress={() => setSearchOpen(true)}>
+              <Text style={styles.searchIcon}>🔍</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
-
-      {/* Search Bar */}
-      {searchOpen && (
-        <View style={[styles.searchBar, dark && styles.darkSearchBar]}>
-          <TextInput
-            style={[styles.searchInput, dark && styles.darkSearchInput]}
-            placeholder="Search workouts, categories..."
-            placeholderTextColor={dark ? '#888' : '#aaa'}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoFocus
-          />
-        </View>
-      )}
 
       {/* Search Results */}
       {isSearching ? (
@@ -136,14 +164,15 @@ export default function ExploreScreen() {
           {searchResults.length === 0 ? (
             <Text style={[styles.noResults, dark && styles.darkText]}>No results found</Text>
           ) : (
-            searchResults.map((result, index) => (
-              <SearchResultCard
-                key={index}
-                title={result.title}
-                sectionTitle={result.sectionTitle}
-                dark={dark}
-              />
-            ))
+searchResults.map((result, index) => (
+  <SearchResultCard
+    key={index}
+    label={result.label}
+    id={result.id}
+    sectionTitle={result.sectionTitle}
+    dark={dark}
+  />
+))
           )}
         </View>
       ) : (
@@ -203,14 +232,14 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingBottom: 10,
   },
-heading: {
-  fontSize: 28,
-  fontWeight: 'bold',
-  letterSpacing: 2,
-  color: '#111',
-  flex: 1,
-  textAlign: 'center',
-},
+  heading: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+    color: '#111',
+    flex: 1,
+    textAlign: 'center',
+  },
   darkText: {
     color: '#fff',
   },
@@ -235,11 +264,18 @@ heading: {
     borderColor: '#444',
   },
   searchInput: {
+    flex: 1,
     fontSize: 16,
     color: '#111',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    marginRight: 10,
   },
   darkSearchInput: {
     color: '#fff',
+    backgroundColor: '#2a2a2a',
   },
   searchResults: {
     padding: 20,
