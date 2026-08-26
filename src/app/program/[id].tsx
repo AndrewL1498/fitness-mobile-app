@@ -381,7 +381,29 @@ export default function ProgramScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Overview' | 'Workouts'>('Overview');
 
-  const program = PROGRAMS[id as string] ?? PROGRAMS['Beginner'];
+const program = PROGRAMS[id as string];
+
+if (!program) {
+  return (
+    <View style={[styles.container, dark && styles.darkContainer]}>
+      <View style={[styles.header, dark && styles.darkHeader]}>
+        <Link href="/explore" asChild>
+          <TouchableOpacity>
+            <Text style={[styles.backArrow, dark && styles.darkText]}>←</Text>
+          </TouchableOpacity>
+        </Link>
+        <Text style={[styles.headerTitle, dark && styles.darkText]}>Coming Soon</Text>
+        <View style={{ width: 24 }} />
+      </View>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 48 }}>🚧</Text>
+        <Text style={[styles.headerTitle, dark && styles.darkText, { marginTop: 16 }]}>
+          This program is coming soon!
+        </Text>
+      </View>
+    </View>
+  );
+}
 
   return (
     <View style={[styles.container, dark && styles.darkContainer]}>
@@ -456,7 +478,7 @@ export default function ProgramScreen() {
                     style={[styles.dayCard, dark && styles.darkCard]}
                     onPress={() =>
                       !day.isRest &&
-                      router.push(`/workout/${encodeURIComponent(day.title)}?programId=${encodeURIComponent(id as string)}` as any)
+                      router.push(`/workout/${encodeURIComponent(id + '-' + day.title.toLowerCase().replace(' ', '-'))}?programId=${encodeURIComponent(id as string)}` as any)
                     }>
                     <View>
                       <Text style={[styles.dayLabel, dark && styles.darkSubText]}>

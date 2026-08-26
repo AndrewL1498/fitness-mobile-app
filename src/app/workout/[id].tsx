@@ -12,78 +12,50 @@ import { useState } from 'react';
 import { WebView } from 'react-native-webview';
 
 const WORKOUTS: Record<string, any> = {
-  'Workout 1': {
+  // Muscle Up Beginner workouts
+  'muscle-up-beginner-workout-1': {
     title: 'Workout 1',
-    subtitle: 'Concentrate on your technique and avoid rushing. Take it slow and maintain control.',
+    subtitle: 'Focus on pulling strength and scapular control.',
     sections: [
       {
         title: 'WARM UP',
         sets: '1 set',
         exercises: [
-          { name: 'Arm Circles - Forward', reps: '8 reps', videoUrl: 'https://youtu.be/iDL5-tQyFQQ' },
-          { name: 'Arm Circles - Backwards', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
-          { name: 'Standing Alternating Over-Under', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
-          { name: 'External - Internal Rotation', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Scapular Pull Ups', reps: '10 reps', videoUrl: '' },
+          { name: 'Band Pull Aparts', reps: '15 reps', videoUrl: '' },
         ],
       },
       {
         title: 'MAIN WORK',
         sets: '3 sets',
         exercises: [
-          { name: 'Push Ups', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=IODxDxX7oi4' },
-          { name: 'Pull Ups', reps: '5 reps', videoUrl: 'https://www.youtube.com/watch?v=eGo4IYlbE5g' },
-          { name: 'Plank Hold', reps: '30 seconds', videoUrl: 'https://www.youtube.com/watch?v=pSHjTRCQxIw' },
-          { name: 'Hollow Body Hold', reps: '20 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
+          { name: 'Australian Pull Ups', reps: '10 reps', videoUrl: '' },
+          { name: 'Negative Pull Ups', reps: '5 reps', videoUrl: '' },
+          { name: 'Dips', reps: '8 reps', videoUrl: '' },
         ],
       },
     ],
   },
-  'Workout 2': {
-    title: 'Workout 2',
-    subtitle: 'Focus on full range of motion. Quality over quantity.',
+  // Handstand Beginner workouts
+  'handstand-beginner-workout-1': {
+    title: 'Workout 1',
+    subtitle: 'Build wrist and shoulder strength for handstand foundations.',
     sections: [
       {
         title: 'WARM UP',
         sets: '1 set',
         exercises: [
-          { name: 'Jumping Jacks', reps: '20 reps', videoUrl: 'https://www.youtube.com/watch?v=c4DAnQ6DtF8' },
-          { name: 'Hip Circles', reps: '10 reps each side', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
-          { name: 'Leg Swings', reps: '10 reps each side', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
+          { name: 'Wrist Circles', reps: '10 reps', videoUrl: '' },
+          { name: 'Shoulder Rolls', reps: '10 reps', videoUrl: '' },
         ],
       },
       {
         title: 'MAIN WORK',
         sets: '3 sets',
         exercises: [
-          { name: 'Dips', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=2z8JmcrW-As' },
-          { name: 'Australian Pull Ups', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=PGcTxvw6iAQ' },
-          { name: 'L-Sit Hold', reps: '15 seconds', videoUrl: 'https://www.youtube.com/watch?v=IUZJoSP66HI' },
-          { name: 'Arch Body Hold', reps: '20 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
-        ],
-      },
-    ],
-  },
-  'Workout 3': {
-    title: 'Workout 3',
-    subtitle: 'Push through the last session of the week. Stay consistent.',
-    sections: [
-      {
-        title: 'WARM UP',
-        sets: '1 set',
-        exercises: [
-          { name: 'Shoulder Rolls', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
-          { name: 'Wrist Circles', reps: '10 reps', videoUrl: 'https://www.youtube.com/watch?v=wqKLKRAFMO4' },
-          { name: 'Cat-Cow Stretch', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=kqnua4rHVVA' },
-        ],
-      },
-      {
-        title: 'MAIN WORK',
-        sets: '3 sets',
-        exercises: [
-          { name: 'Pike Push Ups', reps: '8 reps', videoUrl: 'https://www.youtube.com/watch?v=sposDXWEB0A' },
-          { name: 'Chin Ups', reps: '5 reps', videoUrl: 'https://www.youtube.com/watch?v=eGo4IYlbE5g' },
-          { name: 'Side Plank', reps: '20 seconds each side', videoUrl: 'https://www.youtube.com/watch?v=K2EUqoMjmYg' },
-          { name: 'Tuck Hold', reps: '15 seconds', videoUrl: 'https://www.youtube.com/watch?v=LlDNef_Ztsc' },
+          { name: 'Wall Handstand Hold', reps: '20 seconds', videoUrl: '' },
+          { name: 'Pike Push Ups', reps: '8 reps', videoUrl: '' },
+          { name: 'Hollow Body Hold', reps: '20 seconds', videoUrl: '' },
         ],
       },
     ],
@@ -157,7 +129,25 @@ export default function WorkoutDetailScreen() {
   const router = useRouter();
   const { id, programId } = useLocalSearchParams();
 
-  const workout = WORKOUTS[id as string] ?? WORKOUTS['Workout 1'];
+  const workout = WORKOUTS[id as string];
+
+if (!workout) {
+  return (
+    <View style={[styles.container, dark && styles.darkContainer]}>
+      <Link href="/explore" asChild>
+        <TouchableOpacity style={styles.closeButton}>
+          <Text style={styles.closeText}>←</Text>
+        </TouchableOpacity>
+      </Link>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 48 }}>🚧</Text>
+        <Text style={[styles.sectionTitle, dark && styles.darkText, { marginTop: 16, textAlign: 'center', padding: 20 }]}>
+          This workout is coming soon!
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 return (
     <View style={[styles.container, dark && styles.darkContainer]}>
