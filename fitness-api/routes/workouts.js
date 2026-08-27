@@ -1,0 +1,62 @@
+const express = require('express');
+const router = express.Router();
+const Workout = require('../models/Workout');
+
+// Get all workouts
+router.get('/', async (req, res) => {
+  try {
+    const workouts = await Workout.find();
+    res.json(workouts);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get one workout by id
+router.get('/:id', async (req, res) => {
+  try {
+    const workout = await Workout.findOne({ _id: req.params.id });
+    if (!workout) return res.status(404).json({ message: 'Workout not found' });
+    res.json(workout);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create a workout
+router.post('/', async (req, res) => {
+  const workout = new Workout(req.body);
+  try {
+    const newWorkout = await workout.save();
+    res.status(201).json(newWorkout);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update a workout
+router.patch('/:id', async (req, res) => {
+  try {
+    const workout = await Workout.findOne({ _id: req.params.id });
+    if (!workout) return res.status(404).json({ message: 'Workout not found' });
+    Object.assign(workout, req.body);
+    const updatedWorkout = await workout.save();
+    res.json(updatedWorkout);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete a workout
+router.delete('/:id', async (req, res) => {
+  try {
+    const workout = await Workout.findOne({ _id: req.params.id });
+    if (!workout) return res.status(404).json({ message: 'Workout not found' });
+    await workout.deleteOne();
+    res.json({ message: 'Workout deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+module.exports = router;
