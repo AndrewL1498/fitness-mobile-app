@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
-
-const { width } = Dimensions.get('window');
+import { fetchProgram } from '@/services/api';
+import { useEffect } from 'react';
 
 const PROGRAMS: Record<string, any> = {
   'start-here-intro': {
@@ -376,12 +376,33 @@ const PROGRAMS: Record<string, any> = {
 };
 
 export default function ProgramScreen() {
+  
   const { id } = useLocalSearchParams();
   const { darkMode: dark } = useTheme();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Overview' | 'Workouts'>('Overview');
 
-const program = PROGRAMS[id as string];
+const [program, setProgram] = useState<any>(null);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const loadProgram = async () => {
+    const data = await fetchProgram(id as string);
+    setProgram(data);
+    setLoading(false);
+  };
+  loadProgram();
+}, [id]);
+
+if (loading) {
+  return (
+    <View style={[styles.container, dark && styles.darkContainer]}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={[styles.headerTitle, dark && styles.darkText]}>Loading...</Text>
+      </View>
+    </View>
+  );
+}
 
 if (!program) {
   return (
