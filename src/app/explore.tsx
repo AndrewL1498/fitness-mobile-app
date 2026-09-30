@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import {
   View,
@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { fetchProgramsByCategory } from '@/services/api';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = Math.min(width * 0.6, 280);
@@ -78,7 +79,7 @@ function Section({ title, data, dark }: { title: string; data: { label: string; 
         data={data}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.cardList}
-renderItem={({ item }) => <WorkoutCard label={item.label} id={item.id} dark={dark} />}
+        renderItem={({ item }) => <WorkoutCard label={item.label} id={item.id} dark={dark} />}
       />
     </View>
   );
@@ -104,11 +105,19 @@ export default function ExploreScreen() {
   const [activeFilter, setActiveFilter] = useState('Skills');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { darkMode: dark } = useTheme();
 
-  const filteredSections = SECTIONS.filter(
-    (section) => section.category === activeFilter
-  );
+  useEffect(() => {
+    const loadPrograms = async () => {
+      setLoading(true);
+      const data = await fetchProgramsByCategory(activeFilter);
+      setPrograms(data);
+      setLoading(false);
+    };
+    loadPrograms();
+  }, [activeFilter]);
 
   const searchResults = SECTIONS.flatMap((section) =>
     section.data
@@ -118,7 +127,7 @@ export default function ExploreScreen() {
           section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           section.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
-.map((item) => ({ label: item.label, id: item.id, sectionTitle: section.title }))
+      .map((item) => ({ label: item.label, id: item.id, sectionTitle: section.title }))
   );
 
   const isSearching = searchOpen && searchQuery.length > 0;
@@ -164,15 +173,15 @@ export default function ExploreScreen() {
           {searchResults.length === 0 ? (
             <Text style={[styles.noResults, dark && styles.darkText]}>No results found</Text>
           ) : (
-searchResults.map((result, index) => (
-  <SearchResultCard
-    key={index}
-    label={result.label}
-    id={result.id}
-    sectionTitle={result.sectionTitle}
-    dark={dark}
-  />
-))
+            searchResults.map((result, index) => (
+              <SearchResultCard
+                key={index}
+                label={result.label}
+                id={result.id}
+                sectionTitle={result.sectionTitle}
+                dark={dark}
+              />
+            ))
           )}
         </View>
       ) : (
@@ -203,10 +212,29 @@ searchResults.map((result, index) => (
             ))}
           </ScrollView>
 
-          {/* Sections */}
-          {filteredSections.map((section) => (
-            <Section key={section.title} title={section.title} data={section.data} dark={dark} />
-          ))}
+          {/* Programs from API */}
+          {loading ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <Text style={[styles.sectionTitle, dark && styles.darkText]}>Loading...</Text>
+            </View>
+          ) : programs.length === 0 ? (
+            <View style={{ padding: 40, alignItems: 'center' }}>
+              <Text style={[styles.sectionTitle, dark && styles.darkText]}>No programs yet!</Text>
+            </View>
+          ) : (
+            <View style={styles.section}>
+              <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                data={programs}
+                keyExtractor={(item) => item._id}
+                contentContainerStyle={styles.cardList}
+                renderItem={({ item }) => (
+                  <WorkoutCard label={item.title} id={item._id} dark={dark} />
+                )}
+              />
+            </View>
+          )}
         </>
       )}
     </ScrollView>

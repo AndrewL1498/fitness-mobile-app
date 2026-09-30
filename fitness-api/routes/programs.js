@@ -3,9 +3,11 @@ const router = express.Router();
 const Program = require('../models/Program');
 
 // Get all programs
+// Get all programs
 router.get('/', async (req, res) => {
   try {
-    const programs = await Program.find();
+    const filter = req.query.category ? { category: req.query.category } : {};
+    const programs = await Program.find(filter);
     res.json(programs);
   } catch (err) {
     res.status(500).json({ message: err.message });

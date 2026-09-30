@@ -24,6 +24,18 @@ export const fetchAllPrograms = async () => {
   }
 };
 
+export const fetchProgramsByCategory = async (category: string) => {
+  try {
+    const response = await fetch(`${API_URL}/programs?category=${category}`);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data;
+  } catch (err) {
+    console.error('Error fetching programs by category:', err);
+    return [];
+  }
+};
+
 export const fetchWorkout = async (id: string) => {
   try {
     const response = await fetch(`${API_URL}/workouts/${id}`);
