@@ -499,7 +499,7 @@ if (!program) {
                     style={[styles.dayCard, dark && styles.darkCard]}
                     onPress={() =>
                       !day.isRest &&
-                      router.push(`/workout/${encodeURIComponent(id + '-' + day.title.toLowerCase().replace(' ', '-'))}?programId=${encodeURIComponent(id as string)}` as any)
+                      router.push(`/workout/${encodeURIComponent((id as string) + '-' + day.title.toLowerCase().replace(/ /g, '-'))}?programId=${encodeURIComponent(id as string)}` as any)
                     }>
                     <View>
                       <Text style={[styles.dayLabel, dark && styles.darkSubText]}>

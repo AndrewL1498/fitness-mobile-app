@@ -8,64 +8,15 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
+import { fetchWorkout } from '@/services/api';
 
-const WORKOUTS: Record<string, any> = {
-  // Muscle Up Beginner workouts
-  'muscle-up-beginner-workout-1': {
-    title: 'Workout 1',
-    subtitle: 'Focus on pulling strength and scapular control.',
-    sections: [
-      {
-        title: 'WARM UP',
-        sets: '1 set',
-        exercises: [
-          { name: 'Scapular Pull Ups', reps: '10 reps', videoUrl: '' },
-          { name: 'Band Pull Aparts', reps: '15 reps', videoUrl: '' },
-        ],
-      },
-      {
-        title: 'MAIN WORK',
-        sets: '3 sets',
-        exercises: [
-          { name: 'Australian Pull Ups', reps: '10 reps', videoUrl: '' },
-          { name: 'Negative Pull Ups', reps: '5 reps', videoUrl: '' },
-          { name: 'Dips', reps: '8 reps', videoUrl: '' },
-        ],
-      },
-    ],
-  },
-  // Handstand Beginner workouts
-  'handstand-beginner-workout-1': {
-    title: 'Workout 1',
-    subtitle: 'Build wrist and shoulder strength for handstand foundations.',
-    sections: [
-      {
-        title: 'WARM UP',
-        sets: '1 set',
-        exercises: [
-          { name: 'Wrist Circles', reps: '10 reps', videoUrl: '' },
-          { name: 'Shoulder Rolls', reps: '10 reps', videoUrl: '' },
-        ],
-      },
-      {
-        title: 'MAIN WORK',
-        sets: '3 sets',
-        exercises: [
-          { name: 'Wall Handstand Hold', reps: '20 seconds', videoUrl: '' },
-          { name: 'Pike Push Ups', reps: '8 reps', videoUrl: '' },
-          { name: 'Hollow Body Hold', reps: '20 seconds', videoUrl: '' },
-        ],
-      },
-    ],
-  },
-};
+
 
 function ExerciseCard({ exercise, dark }: { exercise: any; dark: boolean }) {
   const [expanded, setExpanded] = useState(false);
   
-  // Handle both youtube.com/watch?v= and youtu.be/ formats
   const getVideoId = (url: string) => {
     if (!url) return null;
     if (url.includes('youtu.be/')) {
@@ -125,33 +76,60 @@ function ExerciseCard({ exercise, dark }: { exercise: any; dark: boolean }) {
 }
 
 export default function WorkoutDetailScreen() {
-  const { darkMode: dark } = useTheme();
-  const router = useRouter();
+  const { darkMode: dark, isAdmin } = useTheme();
   const { id, programId } = useLocalSearchParams();
+  const [workout, setWorkout] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const workout = WORKOUTS[id as string];
+  useEffect(() => {
+    const loadWorkout = async () => {
+      const data = await fetchWorkout(id as string);
+      setWorkout(data);
+      setLoading(false);
+    };
+    loadWorkout();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <View style={[styles.container, dark && styles.darkContainer]}>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={[styles.sectionTitle, dark && styles.darkText]}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
 if (!workout) {
+  
   return (
     <View style={[styles.container, dark && styles.darkContainer]}>
-      <Link href="/explore" asChild>
+      <Link href={`/program/${programId ?? 'Beginner'}`} asChild>
         <TouchableOpacity style={styles.closeButton}>
           <Text style={styles.closeText}>←</Text>
         </TouchableOpacity>
       </Link>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 }}>
         <Text style={{ fontSize: 48 }}>🚧</Text>
-        <Text style={[styles.sectionTitle, dark && styles.darkText, { marginTop: 16, textAlign: 'center', padding: 20 }]}>
-          This workout is coming soon!
+        <Text style={[styles.heroTitle, { color: dark ? '#fff' : '#111', textAlign: 'center', marginTop: 16 }]}>
+          Coming Soon!
         </Text>
+        {isAdmin && (
+          <TouchableOpacity
+            style={[styles.startButton, { marginTop: 24 }]}
+            onPress={() => router.push(`/admin` as any)}>
+            <Text style={styles.startButtonText}>Build This Workout</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
 }
 
-return (
+  return (
     <View style={[styles.container, dark && styles.darkContainer]}>
-      {/* Sticky Hero */}
+      {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.heroOverlay}>
           <Text style={styles.heroTitle}>{workout.title.toUpperCase()}</Text>
@@ -159,14 +137,14 @@ return (
         </View>
       </View>
 
-      {/* Back Button - floats over hero */}
+      {/* Back Button */}
       <Link href={`/program/${programId ?? 'Beginner'}`} asChild>
         <TouchableOpacity style={styles.closeButton}>
           <Text style={styles.closeText}>←</Text>
         </TouchableOpacity>
       </Link>
 
-      {/* Scrollable Exercise List */}
+      {/* Exercise List */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {workout.sections.map((section: any) => (
           <View key={section.title} style={styles.section}>
@@ -195,52 +173,51 @@ return (
 }
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1,
-  backgroundColor: '#f9f9f9',
-  maxWidth: 600,
-  alignSelf: 'center',
-  width: '100%',
-},
+  container: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
+  },
   darkContainer: {
     backgroundColor: '#121212',
   },
-hero: {
-  width: '100%',
-  height: 160,
-  backgroundColor: '#333',
-  justifyContent: 'flex-end',
-  position: 'relative',
-},
-closeButton: {
-  position: 'absolute',
-  top: 50,
-  left: 16,
-  zIndex: 100,
-  width: 44,
-  height: 44,
-  borderRadius: 22,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-
+  hero: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#333',
+    justifyContent: 'flex-end',
+    position: 'relative',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    left: 16,
+    zIndex: 100,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   closeCircle: {
-  width: 36,
-  height: 36,
-  borderRadius: 18,
-  backgroundColor: 'rgba(0,0,0,0.4)',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   closeText: {
     fontSize: 20,
     color: '#fff',
   },
-heroOverlay: {
-  padding: 20,
-  paddingLeft: 70,
-},
+  heroOverlay: {
+    padding: 20,
+    paddingLeft: 70,
+  },
   heroTitle: {
     fontSize: 32,
     fontWeight: 'bold',
@@ -275,13 +252,13 @@ heroOverlay: {
   darkSubText: {
     color: '#aaa',
   },
-exerciseCard: {
-  backgroundColor: '#fff',
-  borderRadius: 12,
-  padding: 12,
-  marginBottom: 10,
-  flexDirection: 'column',
-},
+  exerciseCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 10,
+    flexDirection: 'column',
+  },
   darkCard: {
     backgroundColor: '#1e1e1e',
   },
@@ -313,33 +290,31 @@ exerciseCard: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-
   exerciseRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: 12,
-},
-playIcon: {
-  color: '#fff',
-  fontSize: 16,
-},
-expandIcon: {
-  fontSize: 12,
-  color: '#888',
-},
-video: {
-  width: '100%',
-  height: 200,
-  marginTop: 12,
-  borderRadius: 8,
-},
-
-exerciseImage: {
-  width: 50,
-  height: 50,
-  borderRadius: 25,
-  backgroundColor: '#555',
-  alignItems: 'center',
-  justifyContent: 'center',
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  playIcon: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  expandIcon: {
+    fontSize: 12,
+    color: '#888',
+  },
+  video: {
+    width: '100%',
+    height: 200,
+    marginTop: 12,
+    borderRadius: 8,
+  },
+  exerciseImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#555',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
