@@ -107,3 +107,17 @@ export const registerAdmin = async (username: string, password: string) => {
     return null;
   }
 };
+
+export const updateWorkout = async (id: string, updates: any) => {
+  try {
+    const response = await fetch(`${API_URL}/workouts/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    return await response.json();
+  } catch (err) {
+    console.error('Error updating workout:', err);
+    return null;
+  }
+};

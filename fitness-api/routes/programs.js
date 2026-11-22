@@ -6,7 +6,10 @@ const Program = require('../models/Program');
 // Get all programs
 router.get('/', async (req, res) => {
   try {
-    const filter = req.query.category ? { category: req.query.category } : {};
+    const escapedCategory = String(req.query.category ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const filter = req.query.category
+      ? { category: { $regex: `^${escapedCategory}$`, $options: 'i' } }
+      : {};
     const programs = await Program.find(filter);
     res.json(programs);
   } catch (err) {

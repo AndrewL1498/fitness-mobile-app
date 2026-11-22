@@ -10,6 +10,7 @@ import {
 import { useLocalSearchParams, useRouter, Link } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { fetchProgram } from '@/services/api';
+import { getCompletedWorkoutIds, setWorkoutCompleted } from '@/services/workoutProgress';
 import { useEffect } from 'react';
 
 const PROGRAMS: Record<string, any> = {
@@ -377,13 +378,16 @@ const PROGRAMS: Record<string, any> = {
 
 export default function ProgramScreen() {
   
-  const { id } = useLocalSearchParams();
+  const { id, tab, completedWorkoutId } = useLocalSearchParams();
   const { darkMode: dark } = useTheme();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'Overview' | 'Workouts'>('Overview');
+  const [activeTab, setActiveTab] = useState<'Overview' | 'Workouts'>(
+    tab === 'workouts' ? 'Workouts' : 'Overview'
+  );
 
 const [program, setProgram] = useState<any>(null);
 const [loading, setLoading] = useState(true);
+const [completedWorkoutIds, setCompletedWorkoutIds] = useState<string[]>([]);
 
 useEffect(() => {
   const loadProgram = async () => {
@@ -393,6 +397,21 @@ useEffect(() => {
   };
   loadProgram();
 }, [id]);
+
+useEffect(() => {
+  if (tab === 'workouts') setActiveTab('Workouts');
+}, [tab]);
+
+useEffect(() => {
+  getCompletedWorkoutIds().then(setCompletedWorkoutIds);
+}, [program, completedWorkoutId]);
+
+const getWorkoutId = (week: number, day: number) => `${id as string}-w${week}-d${day}`;
+
+const markIncomplete = async (workoutId: string) => {
+  await setWorkoutCompleted(workoutId, false);
+  setCompletedWorkoutIds((current) => current.filter((id) => id !== workoutId));
+};
 
 if (loading) {
   return (
@@ -494,22 +513,34 @@ if (!program) {
                   WEEK {weekData.week}
                 </Text>
                 {weekData.days.map((day: any) => (
-                  <TouchableOpacity
-                    key={day.day}
-                    style={[styles.dayCard, dark && styles.darkCard]}
-                    onPress={() =>
-                      !day.isRest &&
-                      router.push(`/workout/${encodeURIComponent((id as string) + '-' + day.title.toLowerCase().replace(/ /g, '-'))}?programId=${encodeURIComponent(id as string)}` as any)
-                    }>
-                    <View>
-                      <Text style={[styles.dayLabel, dark && styles.darkSubText]}>
-                        Day {day.day}
-                      </Text>
-                      <Text style={[styles.dayTitle, dark && styles.darkText]}>
-                        {day.title.toUpperCase()}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  (() => {
+                    const workoutId = getWorkoutId(weekData.week, day.day);
+                    const completed = !day.isRest && completedWorkoutIds.includes(workoutId);
+                    return (
+                      <View key={day.day} style={[styles.dayCard, dark && styles.darkCard, completed && styles.completedDayCard]}>
+                        <TouchableOpacity
+                          style={styles.dayCardPressable}
+                          onPress={() =>
+                            !day.isRest &&
+                            router.push(`/workout/${encodeURIComponent(workoutId)}?programId=${encodeURIComponent(id as string)}` as any)
+                          }>
+                          <View>
+                            <Text style={[styles.dayLabel, dark && styles.darkSubText]}>
+                              Day {day.day}{completed ? ' · Complete' : ''}
+                            </Text>
+                            <Text style={[styles.dayTitle, dark && styles.darkText]}>
+                              {day.title.toUpperCase()}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                        {completed && (
+                          <TouchableOpacity onPress={() => markIncomplete(workoutId)}>
+                            <Text style={styles.markIncompleteText}>Mark incomplete</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })()
                 ))}
               </View>
             ))}
@@ -609,6 +640,9 @@ heroImageLabel: {
     padding: 20,
     marginBottom: 10,
   },
+  dayCardPressable: { flex: 1 },
+  completedDayCard: { backgroundColor: '#777', opacity: 0.72 },
+  markIncompleteText: { color: '#fff', fontSize: 13, fontWeight: '600', marginTop: 10, textDecorationLine: 'underline' },
   dayLabel: { fontSize: 13, color: '#aaa', marginBottom: 4 },
   dayTitle: { fontSize: 16, fontWeight: 'bold', color: '#fff' },
   footer: { padding: 16, paddingBottom: 32 },

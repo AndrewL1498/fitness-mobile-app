@@ -17,7 +17,8 @@ import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 
 export default function AppTabs() {
   const pathname = usePathname();
-  const isWorkoutScreen = pathname.startsWith('/workout/');
+  const isWorkoutScreen =
+    pathname.startsWith('/workout/') || pathname.startsWith('/workout-session/');
 
   return (
     <Tabs>
@@ -35,6 +36,7 @@ export default function AppTabs() {
           </TabTrigger>
           <TabTrigger name="program" href="/program/Beginner" style={{ display: 'none' }} />
           <TabTrigger name="workout" href="/workout/Workout 1" style={{ display: 'none' }} />
+          <TabTrigger name="workout-session" href={"/workout-session/Workout 1" as any} style={{ display: 'none' }} />
           <TabTrigger name="admin" href={"/admin" as any} style={{ display: 'none' }} />
         </CustomTabList>
       </TabList>

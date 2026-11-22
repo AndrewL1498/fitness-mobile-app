@@ -6,15 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  FlatList,
-  Dimensions,
   TextInput,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { fetchProgramsByCategory } from '@/services/api';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = Math.min(width * 0.6, 280);
+import NewProgramModal from '@/components/NewProgramModal';
 
 const FILTERS = ['Skills', 'Mobility', 'Cardio', 'Strength', 'Muscle Growth'];
 
@@ -64,27 +60,6 @@ function WorkoutCard({ label, id, dark }: { label: string; id: string; dark: boo
   );
 }
 
-function Section({ title, data, dark }: { title: string; data: { label: string; id: string }[]; dark: boolean }) {
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, dark && styles.darkText]}>{title}</Text>
-        <TouchableOpacity>
-          <Text style={styles.viewAll}>View All</Text>
-        </TouchableOpacity>
-      </View>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={data}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.cardList}
-        renderItem={({ item }) => <WorkoutCard label={item.label} id={item.id} dark={dark} />}
-      />
-    </View>
-  );
-}
-
 function SearchResultCard({ label, id, sectionTitle, dark }: { label: string; id: string; sectionTitle: string; dark: boolean }) {
   const router = useRouter();
 
@@ -107,7 +82,9 @@ export default function ExploreScreen() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [programs, setPrograms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { darkMode: dark } = useTheme();
+  const [showNew, setShowNew] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { darkMode: dark, isAdmin } = useTheme();
 
   useEffect(() => {
     const loadPrograms = async () => {
@@ -117,7 +94,7 @@ export default function ExploreScreen() {
       setLoading(false);
     };
     loadPrograms();
-  }, [activeFilter]);
+  }, [activeFilter, refreshKey]);
 
   const searchResults = SECTIONS.flatMap((section) =>
     section.data
@@ -223,20 +200,37 @@ export default function ExploreScreen() {
             </View>
           ) : (
             <View style={styles.section}>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={programs}
-                keyExtractor={(item) => item._id}
-                contentContainerStyle={styles.cardList}
-                renderItem={({ item }) => (
-                  <WorkoutCard label={item.title} id={item._id} dark={dark} />
-                )}
-              />
+              <View style={styles.cardList}>
+                {programs.map((program) => (
+                  <WorkoutCard
+                    key={program._id}
+                    label={program.title}
+                    id={program._id}
+                    dark={dark}
+                  />
+                ))}
+              </View>
             </View>
+          )}
+
+          {/* Admin only: create a new program */}
+          {isAdmin && (
+            <TouchableOpacity style={styles.newProgramBtn} onPress={() => setShowNew(true)}>
+              <Text style={styles.newProgramBtnText}>+ New Program</Text>
+            </TouchableOpacity>
           )}
         </>
       )}
+
+      <NewProgramModal
+        visible={showNew}
+        dark={dark}
+        onClose={() => setShowNew(false)}
+        onCreated={(program) => {
+          setActiveFilter(program.category);
+          setRefreshKey((k) => k + 1);
+        }}
+      />
     </ScrollView>
   );
 }
@@ -276,20 +270,6 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     fontSize: 22,
-  },
-  searchBar: {
-    marginHorizontal: 20,
-    marginBottom: 10,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  darkSearchBar: {
-    backgroundColor: '#1e1e1e',
-    borderColor: '#444',
   },
   searchInput: {
     flex: 1,
@@ -379,28 +359,16 @@ const styles = StyleSheet.create({
   section: {
     marginTop: 24,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111',
   },
-  viewAll: {
-    fontSize: 14,
-    color: '#888',
-  },
   cardList: {
     paddingHorizontal: 20,
-    gap: 12,
   },
   card: {
-    width: CARD_WIDTH,
+    width: '100%',
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#fff',
@@ -408,6 +376,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    marginBottom: 12,
   },
   darkCard: {
     backgroundColor: '#2a2a2a',
@@ -425,5 +394,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#111',
+  },
+  newProgramBtn: {
+    margin: 20,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+    alignItems: 'center',
+  },
+  newProgramBtnText: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
